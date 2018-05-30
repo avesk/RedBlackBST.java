@@ -137,14 +137,31 @@ public class RedBlackBST {
         h.right.color = !h.right.color;
     }
 
-    private int percentRed() {
-        return 0;
+    /**
+     * calculates the percentage of red nodes in the RedBlack Search Tree
+     * @return int  number of red nodes in the tree
+     */
+    private int numRed(Node h) {
+        int numR = 0;
+
+        if(h != null) {
+            if(h.color)
+                numR = 1;
+
+            numR += numRed(h.left);
+            numR += numRed(h.right);
+        }
+
+        return numR;
+    }
+
+    public double percentRed() {
+        return ((double) numRed(root) / (double) this.size())*100;
     }
 
 
     /**
-     * Unit tests the {@code RedBlackBST} data type.
-     *
+     * @todo finish else case
      * @param args the command-line arguments
      */
     public static void main(String[] args) throws IOException {
@@ -154,11 +171,11 @@ public class RedBlackBST {
             String[] strVals;
             String line;
 
+            System.out.printf("Reading input values from: %s\n", args[0]);
             FileReader in = new FileReader(args[0]);
             BufferedReader buf = new BufferedReader(in);
 
             line = buf.readLine();
-            // System.out.println(line);
             in.close();
 
             strVals = line.split("\\s+");
@@ -167,10 +184,13 @@ public class RedBlackBST {
                 st.put(Integer.parseInt(str));
             }
 
-        } else {
+        } else { // remember to finish this else case
+            st.put(0);
             st.put(1);
-            st.put(2);
+            st.put(3);
         }
+
+        System.out.printf("Percent of Red Nodes: %f\n", st.percentRed());
 
         System.out.printf("Size of tree is %d\n", st.size());
     }
