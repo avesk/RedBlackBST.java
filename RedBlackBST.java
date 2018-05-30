@@ -1,5 +1,7 @@
 import java.util.NoSuchElementException;
 import java.io.*;
+import java.util.ArrayList;
+import java.util.Collections;
 
 public class RedBlackBST {
 
@@ -7,6 +9,8 @@ public class RedBlackBST {
     private static final boolean BLACK = false;
 
     private Node root;     // root of the BST
+    private int numFlips = 0;
+    private int numRedNodes = 0;
 
     // BST helper node data type
     private class Node {
@@ -72,14 +76,20 @@ public class RedBlackBST {
      * @throws NullPointerException if {@code key} is {@code null}
      */
     public void put(int key) {
-
         root = put(root, key);
+        if(isRed(root)) {
+            numRedNodes -=1;
+            // System.out.println("subtracting 1 from red count");
+        }
         root.color = BLACK;
     }
 
     // insert the key-value pair in the subtree rooted at h
     private Node put(Node h, int key) {
-        if (h == null) return new Node(key, RED, 1);
+        if (h == null) {
+            numRedNodes++;
+            return new Node(key, RED, 1);
+        }
 
         int cmp = key - h.key;
         if      (cmp < 0) h.left  = put(h.left,  key);
@@ -87,9 +97,16 @@ public class RedBlackBST {
         else              h.key   = key;
 
         // fix-up any right-leaning links
-        if (isRed(h.right) && !isRed(h.left))      h = rotateLeft(h);
-        if (isRed(h.left)  &&  isRed(h.left.left)) h = rotateRight(h);
-        if (isRed(h.left)  &&  isRed(h.right))     flipColors(h);
+        if (isRed(h.right) && !isRed(h.left)) {
+            h = rotateLeft(h);
+        }
+        if (isRed(h.left)  &&  isRed(h.left.left)) {
+            h = rotateRight(h);
+        }
+        if (isRed(h.left)  &&  isRed(h.right)) {
+            flipColors(h);
+            numRedNodes--;
+        }
         h.size = size(h.left) + size(h.right) + 1;
 
         return h;
@@ -137,10 +154,6 @@ public class RedBlackBST {
         h.right.color = !h.right.color;
     }
 
-    /**
-     * calculates the percentage of red nodes in the RedBlack Search Tree
-     * @return int  number of red nodes in the tree
-     */
     private int numRed(Node h) {
         int numR = 0;
 
@@ -155,8 +168,14 @@ public class RedBlackBST {
         return numR;
     }
 
+    /**
+     * calculates the percentage of red nodes in the RedBlack Search Tree
+     * @return double  percentage of red nodes in the tree
+     */
     public double percentRed() {
-        return ((double) numRed(root) / (double) this.size())*100;
+        System.out.printf("Num red nodes: %d\n", numRedNodes);
+        System.out.printf("Recursive Num red nodes: %d\n", numRed(root));
+        return ((double) numRedNodes / (double) this.size())*100;
     }
 
 
@@ -184,15 +203,27 @@ public class RedBlackBST {
                 st.put(Integer.parseInt(str));
             }
 
-        } else { // remember to finish this else case
-            st.put(0);
-            st.put(1);
-            st.put(3);
+        } else {
+            int max = 7;
+            int min = 0;
+
+            ArrayList<Integer> keys = new ArrayList<Integer>();
+
+            for (int i = min; i < max; i++) {
+                keys.add(new Integer(i));
+            }
+
+            Collections.shuffle(keys);
+
+            int key;
+            for(int i = 0; i < max; i++) {
+                key = keys.get(i);
+                System.out.printf("inserting %d\n", key);
+                st.put(key);
+            }
         }
 
         System.out.printf("Percent of Red Nodes: %f\n", st.percentRed());
-
-        System.out.printf("Size of tree is %d\n", st.size());
     }
 
 
