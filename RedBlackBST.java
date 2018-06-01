@@ -2,6 +2,7 @@ import java.util.NoSuchElementException;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class RedBlackBST {
 
@@ -79,7 +80,6 @@ public class RedBlackBST {
         root = put(root, key);
         if(isRed(root)) {
             numRedNodes -=1;
-            // System.out.println("subtracting 1 from red count");
         }
         root.color = BLACK;
     }
@@ -173,11 +173,14 @@ public class RedBlackBST {
      * @return double  percentage of red nodes in the tree
      */
     public double percentRed() {
-        System.out.printf("Num red nodes: %d\n", numRedNodes);
-        System.out.printf("Recursive Num red nodes: %d\n", numRed(root));
-        return ((double) numRedNodes / (double) this.size())*100;
+        // System.out.printf("Num red nodes: %d\n", numRedNodes);
+        // System.out.printf("Recursive Num red nodes: %d\n", numRed(root));
+        double size = this.size();
+        if(size > 0)
+            return ((double) numRedNodes / size)*100;
+        else
+            return 0;
     }
-
 
     /**
      * @todo finish else case
@@ -203,27 +206,63 @@ public class RedBlackBST {
                 st.put(Integer.parseInt(str));
             }
 
+            System.out.printf("Percent of Red Nodes: %f\n", st.percentRed());
         } else {
-            int max = 7;
-            int min = 0;
-
-            ArrayList<Integer> keys = new ArrayList<Integer>();
-
-            for (int i = min; i < max; i++) {
-                keys.add(new Integer(i));
-            }
-
-            Collections.shuffle(keys);
-
             int key;
-            for(int i = 0; i < max; i++) {
-                key = keys.get(i);
-                System.out.printf("inserting %d\n", key);
-                st.put(key);
-            }
-        }
+            double percentRed;
+            RedBlackBST stHyp;
+            ArrayList<Integer> keys;
 
-        System.out.printf("Percent of Red Nodes: %f\n", st.percentRed());
+            int max = 10;
+            int min = 0;
+            double percentageSum = 0;
+            String inputSizes = "";
+            String[] percentRes = new String[10];
+            String csvExp;
+            int numCols = 0;
+            int numDistinctInputs = 20;
+            int[] tenRandNums = new int[numDistinctInputs];
+
+            // generate 10 random numbers between 1 and 1000000
+            for(int i = 0; i < numDistinctInputs; i++) {
+                tenRandNums[i] = ThreadLocalRandom.current().nextInt(min, max + 1);
+            }
+
+            for(int randNum : tenRandNums) {
+                numCols++;
+                inputSizes += randNum + ",";
+                for(int j = 0; j < 10; j++) {
+                    stHyp = new RedBlackBST();
+                    keys = new ArrayList<Integer>();
+
+                    for (int i = min; i < randNum; i++) {
+                        keys.add(new Integer(i));
+                    }
+
+                    Collections.shuffle(keys);
+
+                    for(int i = 0; i < randNum; i++) {
+                        key = keys.get(i);
+                        stHyp.put(key);
+                    }
+
+                    percentRed = stHyp.percentRed();
+                    percentageSum += percentRed;
+                    if(percentRes[j] == null)
+                        percentRes[j] = "";
+                    percentRes[j] += percentRed + ",";
+                }
+            }
+
+            double expVal = percentageSum / (numDistinctInputs*10);
+            percentRes[0] += expVal;
+            String finalPercentRed = "";
+            for(String pr : percentRes) {
+                finalPercentRed += pr + "\n";
+            }
+            csvExp = inputSizes + "E(n)\n" + finalPercentRed;
+            System.out.println(csvExp);
+        }
     }
 
 
