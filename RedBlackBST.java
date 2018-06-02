@@ -1,7 +1,7 @@
 import java.util.NoSuchElementException;
 import java.io.*;
-import java.util.Random;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.ArrayList;
+import java.util.Collections;
 
 /**
  * @author Avery K.
@@ -184,6 +184,47 @@ public class RedBlackBST {
             return 0;
     }
 
+    public static void printExpVals() {
+        double percentRed;
+        RedBlackBST stHyp = new RedBlackBST();
+        ArrayList<Integer> keys;
+        int[] tests = {10000, 100000, 1000000};
+
+        double percentageSum = 0;
+        int numTrials = 200;
+        double[] expValues = new double[tests.length];
+        int key;
+
+        int col = 0;
+
+        for(int testNum : tests) {
+            for(int j = 0; j < numTrials; j++) {
+
+                keys = new ArrayList<Integer>();
+                for (int i = 0; i < testNum; i++) {
+                    keys.add(new Integer(i));
+                }
+
+                Collections.shuffle(keys);
+
+                for(int i = 0; i < testNum; i++) {
+                    key = keys.get(i);
+                    stHyp.put(key);
+                }
+
+                percentRed = stHyp.percentRed();
+                expValues[col] += percentRed;
+
+                stHyp = new RedBlackBST();
+                // System.out.println("--------END OF TRIAL---------");
+            }
+
+            expValues[col] = expValues[col] / numTrials;
+            System.out.printf("The Expected value for n = %d is: %f\n", testNum, expValues[col]);
+            col++;
+        }
+    }
+
     /**
      * @todo finish else case
      * @param args the command-line arguments
@@ -191,11 +232,10 @@ public class RedBlackBST {
     public static void main(String[] args) throws IOException {
         long startTime = System.nanoTime();
 
-		RedBlackBST st = new RedBlackBST();
-
         if(args.length > 0) {
             String[] strVals;
             String line;
+            RedBlackBST st = new RedBlackBST();
 
             System.out.printf("Reading input values from: %s\n", args[0]);
             FileReader in = new FileReader(args[0]);
@@ -212,71 +252,13 @@ public class RedBlackBST {
 
             System.out.printf("Percent of Red Nodes: %f\n", st.percentRed());
         } else {
-            int key;
-            double percentRed;
-            RedBlackBST stHyp = new RedBlackBST();;
-            int[] tests = {10000, 100000, 1000000};
-
-            double percentageSum = 0;
-            String inputSizes = "";
-            int numTrials = 200;
-            String[] percentRes = new String[numTrials];
-            String csvExp;
-            double[] expValues = new double[tests.length];
-            boolean csvOut = false;
-
-            Random randNum = new Random();
-            int num;
-
-            int col = 0;
-            for(int testNum : tests) {
-                // if(csvOut) inputSizes += testNum + ",";
-
-                for(int j = 0; j < numTrials; j++) {
-                    // stHyp = new RedBlackBST();
-
-                    for(int i = 0; i < testNum; i++) {
-                        num = randNum.nextInt(testNum);
-                        stHyp.put(num);
-                    }
-
-                    percentRed = stHyp.percentRed();
-                    expValues[col] += percentRed;
-                    // percentageSum += percentRed;
-                    // if(csvOut && percentRes[j] == null)
-                    //     percentRes[j] = "";
-                    // if(csvOut) percentRes[j] += percentRed + ",";
-
-                    stHyp = new RedBlackBST();
-                    // stHyp.root = null;
-                }
-                expValues[col] = expValues[col] / numTrials;
-                System.out.printf("The Expected value for n = %d is: %f\n", testNum, expValues[col]);
-                col++;
-            }
-
-            double expVal = percentageSum / (tests.length*numTrials);
-            percentRes[0] += expVal;
-            if(csvOut) {
-                String finalPercentRed = "";
-                for(String pr : percentRes) {
-                    finalPercentRed += pr + "\n";
-                }
-                csvExp = inputSizes + "E(n)\n" + finalPercentRed;
-                System.out.println(csvExp);
-            } else {
-                int curNum = 10000;
-                for(int i = 0; i < expValues.length; i++) {
-                    System.out.printf("The Expected value for n = %d is: %f\n", curNum, expValues[i]);
-                    curNum*=10;
-                }
-                // System.out.printf("The Expected value for each trial is: %f\n", expVal);
-            }
+            printExpVals();
         }
 
         long endTime   = System.nanoTime();
-        long totalTime = endTime - startTime;
-        System.out.println(totalTime);
+        long totalTime = (endTime - startTime);
+        double totalTimeSeconds = (totalTime*1.0) / 1000000000.0;
+        System.out.println(totalTimeSeconds);
     }
 
 
